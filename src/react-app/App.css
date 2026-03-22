@@ -101,7 +101,7 @@ img   { max-width: 100%; display: block; }
   text-align: center;
   padding: 10px var(--space-md);
   position: relative;
-  z-index: 100;
+  z-index: 300;
 }
 
 .ribbon-text {
@@ -123,7 +123,7 @@ img   { max-width: 100%; display: block; }
   position: fixed;
   left: 0;
   right: 0;
-  z-index: 90;
+  z-index: 300;
   padding: 0 var(--space-md);
   transition: top var(--transition), background var(--transition), backdrop-filter var(--transition);
 }
@@ -196,12 +196,37 @@ img   { max-width: 100%; display: block; }
   margin-top: 2px;
 }
 
-/* Nav Links */
-.navbar__links {
+/* Nav Links — desktop */
+.navbar__links--desktop {
   display: flex;
   align-items: center;
   gap: var(--space-md);
   list-style: none;
+}
+
+/* Nav Links — mobile portal drawer (always fixed to viewport) */
+.navbar__links--open {
+  display: flex;
+  list-style: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(320px, 100vw);
+  z-index: 200;
+  background: rgba(10,12,9,0.97);
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-lg);
+  gap: var(--space-md);
+  border-left: 1px solid var(--color-border);
+  animation: drawerIn 0.35s var(--ease-silk) both;
+}
+
+@keyframes drawerIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
 }
 
 .nav-link {
@@ -260,6 +285,8 @@ img   { max-width: 100%; display: block; }
   flex-direction: column;
   gap: 5px;
   padding: 6px;
+  position: relative;
+  z-index: 201;
 }
 
 .navbar__burger span {
@@ -275,6 +302,18 @@ img   { max-width: 100%; display: block; }
 .navbar__burger.open span:nth-child(2) { opacity: 0; }
 .navbar__burger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
 
+.navbar__close-item { display: none; }
+
+.navbar__close {
+  font-size: 1.2rem;
+  color: var(--color-text-secondary);
+  line-height: 1;
+  padding: 4px;
+  transition: color var(--transition);
+}
+
+.navbar__close:hover { color: var(--color-text-primary); }
+
 /* ── Hero ── */
 .hero {
   position: relative;
@@ -283,7 +322,7 @@ img   { max-width: 100%; display: block; }
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* top padding clears navbar+ribbon, bottom padding clears scroll hint */
+  /* top padding clears ribbon (~37px) + navbar (~68px) + breathing room */
   padding: 160px var(--space-md) 120px;
 }
 
@@ -351,7 +390,7 @@ img   { max-width: 100%; display: block; }
   z-index: 2;
   text-align: center;
   max-width: 860px;
-  padding: 0 var(--space-md) var(--space-md);
+  padding: 0 var(--space-md);
   animation: heroReveal 1.2s var(--ease-silk) both;
 }
 
@@ -457,14 +496,12 @@ img   { max-width: 100%; display: block; }
   50%  { opacity: 0.9; transform: scaleY(0.7); }
 }
 
-/* Coming Soon Glass Card */
+/* Coming Soon Card — inline below hero buttons */
 .coming-soon-card {
-  position: absolute;
-  top: 50%;
-  right: var(--space-lg);
-  transform: translateY(-50%);
-  z-index: 3;
-  animation: heroReveal 1s var(--ease-silk) 1s both;
+  margin: var(--space-lg) 0;
+  display: inline-flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .cs-card__inner {
@@ -472,10 +509,14 @@ img   { max-width: 100%; display: block; }
   backdrop-filter: var(--blur-glass);
   border: 1px solid var(--color-border-gold);
   border-radius: var(--radius-lg);
-  padding: 28px 32px;
-  max-width: 280px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   box-shadow: var(--shadow-card);
-  text-align: left;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 520px;
 }
 
 .cs-card__dot {
@@ -1196,22 +1237,20 @@ img   { max-width: 100%; display: block; }
   color: var(--color-text-muted);
 }
 
+/* Mobile menu overlay */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  background: rgba(0, 0, 0, 0.35);
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .spaces__grid    { grid-template-columns: 1fr; max-width: 600px; margin: 0 auto; }
   .services__grid  { grid-template-columns: repeat(2, 1fr); }
   .about__grid     { grid-template-columns: 1fr; }
   .about__visual   { display: none; }
-
-  /* On tablet the card can't float right without overlapping, inline it */
-  .coming-soon-card {
-    position: static;
-    transform: none;
-    margin: var(--space-md) auto 0;
-    max-width: 340px;
-    display: flex;
-    justify-content: center;
-  }
 }
 
 @media (max-width: 768px) {
@@ -1221,34 +1260,15 @@ img   { max-width: 100%; display: block; }
   }
 
   .navbar__burger { display: flex; }
-
-  .navbar__links {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: min(320px, 100vw);
-    background: rgba(10,12,9,0.95);
-    backdrop-filter: var(--blur-glass);
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    padding: var(--space-xl) var(--space-lg);
-    gap: var(--space-md);
-    border-left: 1px solid var(--color-border);
-    transform: translateX(100%);
-    transition: transform var(--transition);
-  }
-
-  .navbar__links--open { transform: translateX(0); }
+  .navbar__close-item { display: flex; justify-content: flex-end; width: 100%; margin-bottom: var(--space-sm); }
+  .navbar__links--desktop { display: none; }
 
   .nav-link { font-size: 1rem; }
   .nav-cta  { font-size: 0.85rem; padding: 12px 28px; }
 
-  /* Hero: enough bottom room for scroll hint, no card overlapping */
+  /* Hero: reduce bottom padding now that card is outside */
   .hero {
-    padding: 140px var(--space-sm) 100px;
-    align-items: flex-start;
+    padding: 120px var(--space-sm) 80px;
   }
 
   .hero__content {
@@ -1258,14 +1278,7 @@ img   { max-width: 100%; display: block; }
 
   .hero__scroll-hint { display: none; }
 
-  .coming-soon-card {
-    position: static;
-    transform: none;
-    margin: var(--space-md) auto 0;
-    max-width: 100%;
-  }
-
-  .cs-card__inner { max-width: 100%; }
+  .cs-card__inner { flex-direction: column; gap: var(--space-sm); }
 
   .hero__actions { flex-direction: column; align-items: center; }
   .btn { width: 100%; max-width: 300px; }

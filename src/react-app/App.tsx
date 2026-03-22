@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import "./App.css";
 
 function App() {
@@ -36,6 +37,35 @@ function App() {
         </span>
       </div>
 
+      {menuOpen && createPortal(
+        <>
+          <div className="menu-overlay" onClick={() => setMenuOpen(false)} />
+          <ul className="navbar__links navbar__links--open">
+            {[
+              { id: "about", label: "About" },
+              { id: "spaces", label: "Spaces" },
+              { id: "services", label: "Services" },
+              { id: "contact", label: "Contact" },
+            ].map(({ id, label }) => (
+              <li key={id}>
+                <button
+                  className={`nav-link ${activeSection === id ? "nav-link--active" : ""}`}
+                  onClick={() => scrollTo(id)}
+                >
+                  {label}
+                </button>
+              </li>
+            ))}
+            <li>
+              <button className="nav-cta" onClick={() => scrollTo("contact")}>
+                Book Inquiry
+              </button>
+            </li>
+          </ul>
+        </>,
+        document.body
+      )}
+
       {/* Navigation */}
       <nav className={`navbar ${scrolled ? "navbar--scrolled" : ""}`}>
         <div className="navbar__inner">
@@ -55,7 +85,7 @@ function App() {
             <span /><span /><span />
           </button>
 
-          <ul className={`navbar__links ${menuOpen ? "navbar__links--open" : ""}`}>
+          <ul className="navbar__links navbar__links--desktop">
             {[
               { id: "about", label: "About" },
               { id: "spaces", label: "Spaces" },
@@ -108,26 +138,26 @@ function App() {
               Explore Our Spaces
             </button>
           </div>
+
+          {/* Coming Soon Card — inline below buttons on all screen sizes */}
+          <div className="coming-soon-card">
+            <div className="cs-card__inner">
+              <div className="cs-card__dot" />
+              <p className="cs-card__label">Opening Soon</p>
+              <p className="cs-card__text">
+                We're putting the final touches on something magnificent.
+                Register your interest and be first to know.
+              </p>
+              <button className="btn btn--card" onClick={() => scrollTo("contact")}>
+                Get Early Access
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="hero__scroll-hint">
           <span>Scroll</span>
           <div className="scroll-line" />
-        </div>
-
-        {/* Coming Soon Glass Card */}
-        <div className="coming-soon-card">
-          <div className="cs-card__inner">
-            <div className="cs-card__dot" />
-            <p className="cs-card__label">Opening Soon</p>
-            <p className="cs-card__text">
-              We're putting the final touches on something magnificent. <br />
-              Register your interest and be first to know.
-            </p>
-            <button className="btn btn--card" onClick={() => scrollTo("contact")}>
-              Get Early Access
-            </button>
-          </div>
         </div>
       </section>
 
