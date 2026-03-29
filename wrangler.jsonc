@@ -3,7 +3,7 @@
 	"preview_urls": false,
 	"name": "manoreastny",
 	"main": "./src/worker/index.ts",
-	"compatibility_date": "2025-10-08",
+	"compatibility_date": "2026-03-28",
 	"compatibility_flags": ["nodejs_compat"],
 	"observability": {
 		"enabled": true

@@ -1359,6 +1359,10 @@ img   { max-width: 100%; display: block; }
   /* Gallery: use a landscape ratio on small screens to save vertical space */
   .about__gallery-slide { aspect-ratio: 4 / 3; }
 
+  .about__grid {
+    display: block;
+  }
+
   /* Pull badge fully inside the slide frame so it can't overlap the caption label.
      Label sits bottom-left; badge moves to top-right — completely opposite corners. */
   .about__img-badge {
