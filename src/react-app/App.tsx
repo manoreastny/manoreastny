@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import "./App.css";
+
+// Building exterior photo — imported as a URL via Vite's asset pipeline
+// Place manor-east-building.jpg in src/react-app/assets/
+import buildingPhoto from "./assets/manor-east-building.jpg";
 
 function App() {
   const [scrolled, setScrolled] = useState(false);
@@ -173,16 +177,8 @@ function App() {
         <div className="container">
           <div className="about__grid">
             <div className="about__visual">
-              <div className="about__img-frame">
-                <div className="about__img-placeholder">
-                  <div className="img-shimmer" />
-                  <span className="img-label">Manor East · Grand Hall</span>
-                </div>
-                <div className="about__img-badge">
-                  <span className="badge-number">NY</span>
-                  <span className="badge-label">New York</span>
-                </div>
-              </div>
+              {/* Gallery slider showing the venue exterior and interior */}
+              <AboutGallery />
             </div>
             <div className="about__copy">
               <p className="section-eyebrow">Our Story</p>
@@ -195,7 +191,7 @@ function App() {
               </p>
               <div className="about__stats">
                 {[
-                  { number: "500", label: "Guest Capacity" },
+                  { number: "X+", label: "Guest Capacity" },
                   { number: "X+", label: "Years in Hospitality" },
                   { number: "NY", label: "Based & Proud" },
                 ].map(({ number, label }) => (
@@ -225,25 +221,18 @@ function App() {
           <div className="spaces__grid">
             {[
               {
-                name: "Venue Space One",
+                name: "Majestic",
                 capacity: "TBD",
                 desc: "Details about this space coming soon. Contact us to learn more about availability and what this room has to offer.",
                 tags: ["Coming Soon"],
                 accent: "gold",
               },
               {
-                name: "Venue Space Two",
+                name: "Tiffany",
                 capacity: "TBD",
                 desc: "Details about this space coming soon. Contact us to learn more about availability and what this room has to offer.",
                 tags: ["Coming Soon"],
                 accent: "sage",
-              },
-              {
-                name: "Venue Space Three",
-                capacity: "TBD",
-                desc: "Details about this space coming soon. Contact us to learn more about availability and what this room has to offer.",
-                tags: ["Coming Soon"],
-                accent: "emerald",
               },
             ].map((space) => (
               <div key={space.name} className={`space-card space-card--${space.accent}`}>
@@ -322,7 +311,7 @@ function App() {
                   <span className="contact-item__icon">✉️</span>
                   <div>
                     <p className="contact-item__label">Email</p>
-                    <p className="contact-item__value">Coming Soon</p>
+                    <p className="contact-item__value">info@manoreastny.com</p>
                   </div>
                 </div>
                 <div className="contact-item">
@@ -374,8 +363,97 @@ function App() {
   );
 }
 
+/* ── About Gallery ── */
+// Slideshow component for the About section visual panel.
+// Each slide is either { type: "photo", src, alt, label } or { type: "shimmer", label }.
+// Add more photo slides as real venue photos become available.
+function AboutGallery() {
+  const slides: Array<
+    | { type: "photo"; src: string; alt: string; label: string }
+    | { type: "shimmer"; label: string }
+  > = [
+    {
+      type: "photo",
+      src: buildingPhoto,
+      label: "Manor East · Exterior",
+      alt: "Manor East building exterior",
+    },
+    // Placeholder shown while interior photos are pending
+    {
+      type: "shimmer",
+      label: "Manor East · Tiffany",
+    },
+  ];
+
+  const [current, setCurrent] = useState(0);
+  const [transitioning, setTransitioning] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-advance every 5 seconds
+  useEffect(() => {
+    timerRef.current = setTimeout(() => goTo((current + 1) % slides.length), 5000);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [current, slides.length]);
+
+  const goTo = (index: number) => {
+    if (transitioning || index === current) return;
+    setTransitioning(true);
+    setTimeout(() => {
+      setCurrent(index);
+      setTransitioning(false);
+    }, 300);
+  };
+
+  const slide = slides[current];
+
+  return (
+    <div className="about__gallery">
+      <div className={`about__gallery-slide ${transitioning ? "about__gallery-slide--out" : "about__gallery-slide--in"}`}>
+        {/* Photo slide */}
+        {slide.type === "photo" && (
+          <img
+            src={slide.src}
+            alt={slide.alt}
+            className="about__gallery-img"
+          />
+        )}
+
+        {/* Shimmer placeholder slide — reuses the original animated gradient */}
+        {slide.type === "shimmer" && (
+          <div className="about__gallery-shimmer">
+            <div className="img-shimmer" />
+          </div>
+        )}
+
+        <div className="about__gallery-overlay" />
+        <span className="img-label">{slide.label}</span>
+      </div>
+
+      {/* Dot navigation */}
+      <div className="about__gallery-dots">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            className={`about__gallery-dot ${i === current ? "about__gallery-dot--active" : ""}`}
+            onClick={() => goTo(i)}
+            aria-label={`Go to slide ${i + 1}`}
+          />
+        ))}
+      </div>
+
+      <div className="about__img-badge">
+        <span className="badge-number">NY</span>
+        <span className="badge-label">New York</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── Contact Form ── */
 function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -386,9 +464,27 @@ function ContactForm() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      // POST inquiry to the Hono worker endpoint; the worker forwards to info@manoreastny.com
+      const res = await fetch("/api/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, to: "info@manoreastny.com" }),
+      });
+
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Inquiry submission error:", err);
+      setError("Something went wrong. Please email us directly at info@manoreastny.com.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -494,8 +590,10 @@ function ContactForm() {
           onChange={(e) => setForm({ ...form, message: e.target.value })}
         />
       </div>
-      <button type="submit" className="btn btn--primary btn--full">
-        Send Inquiry
+      {/* Inline error shown if submission fails */}
+      {error && <p className="form-error">{error}</p>}
+      <button type="submit" className="btn btn--primary btn--full" disabled={submitting}>
+        {submitting ? "Sending…" : "Send Inquiry"}
       </button>
     </form>
   );

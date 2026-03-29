@@ -595,6 +595,12 @@ img   { max-width: 100%; display: block; }
   box-shadow: 0 16px 50px rgba(196,160,90,0.4);
 }
 
+.btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .btn--ghost {
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
@@ -690,44 +696,58 @@ img   { max-width: 100%; display: block; }
   align-items: center;
 }
 
+/* ── About Gallery ── */
+/* Replaces the old about__img-placeholder / about__img-frame with a real slideshow */
 .about__visual { position: relative; }
 
-.about__img-frame {
+.about__gallery {
   position: relative;
   border-radius: var(--radius-lg);
   overflow: visible;
 }
 
-.about__img-placeholder {
+/* Slide wrapper — matches the old aspect ratio so layout stays identical */
+.about__gallery-slide {
+  position: relative;
   aspect-ratio: 3 / 4;
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, rgba(61,107,79,0.3), rgba(196,160,90,0.1));
-  border: 1px solid var(--color-border-gold);
   overflow: hidden;
-  position: relative;
+  border: 1px solid var(--color-border-gold);
   display: flex;
   align-items: flex-end;
   padding: var(--space-md);
+  transition: opacity 0.3s ease;
 }
 
-.img-shimmer {
+.about__gallery-slide--in  { opacity: 1; }
+.about__gallery-slide--out { opacity: 0; }
+
+/* The actual photo */
+.about__gallery-img {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(61,107,79,0.2) 0%,
-    rgba(196,160,90,0.1) 50%,
-    rgba(61,107,79,0.15) 100%
-  );
-  animation: shimmerPan 6s ease-in-out infinite alternate;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
-@keyframes shimmerPan {
-  from { background-position: 0% 0%; }
-  to   { background-position: 100% 100%; }
+/* Shimmer placeholder — fills the slide the same way a photo would */
+.about__gallery-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(61,107,79,0.3), rgba(196,160,90,0.1));
 }
 
-.img-label {
+/* Dark gradient overlay so the label stays readable */
+.about__gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.55) 100%);
+}
+
+/* Caption label reuses the existing .img-label style */
+.about__gallery-slide .img-label {
   position: relative;
   font-size: 0.68rem;
   letter-spacing: 0.15em;
@@ -740,6 +760,32 @@ img   { max-width: 100%; display: block; }
   border-radius: 50px;
 }
 
+/* Dot navigation */
+.about__gallery-dots {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+
+.about__gallery-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(240, 232, 214, 0.35);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.about__gallery-dot--active {
+  background: var(--color-gold);
+  transform: scale(1.3);
+}
+
 .about__img-badge {
   position: absolute;
   bottom: -24px;
@@ -749,6 +795,8 @@ img   { max-width: 100%; display: block; }
   padding: 20px 24px;
   text-align: center;
   box-shadow: 0 8px 30px rgba(196,160,90,0.3);
+  /* Prevent the badge from overflowing onto the label on narrow screens */
+  z-index: 3;
 }
 
 .badge-number {
@@ -821,10 +869,13 @@ img   { max-width: 100%; display: block; }
   pointer-events: none;
 }
 
+/* Two-space layout: side-by-side on desktop, stacked on mobile */
 .spaces__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--space-md);
+  max-width: 860px;
+  margin: 0 auto;
 }
 
 .space-card {
@@ -1145,6 +1196,17 @@ img   { max-width: 100%; display: block; }
 
 .form-textarea { resize: vertical; min-height: 110px; }
 
+/* Inline error message shown when submission fails */
+.form-error {
+  font-size: 0.82rem;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  line-height: 1.5;
+}
+
 /* Form Success */
 .form-success {
   text-align: center;
@@ -1247,10 +1309,12 @@ img   { max-width: 100%; display: block; }
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
+  /* Two-space grid: already 1-col on tablet, centered */
   .spaces__grid    { grid-template-columns: 1fr; max-width: 600px; margin: 0 auto; }
   .services__grid  { grid-template-columns: repeat(2, 1fr); }
   .about__grid     { grid-template-columns: 1fr; }
-  .about__visual   { display: none; }
+  /* about__visual is now shown on all screen sizes — gallery is always visible */
+  .about__visual   { display: block; max-width: 480px; margin: 0 auto var(--space-lg); }
 }
 
 @media (max-width: 768px) {
@@ -1291,6 +1355,27 @@ img   { max-width: 100%; display: block; }
   .footer__nav   { flex-wrap: wrap; justify-content: center; }
 
   .about__stats { grid-template-columns: repeat(3, 1fr); }
+
+  /* Gallery: use a landscape ratio on small screens to save vertical space */
+  .about__gallery-slide { aspect-ratio: 4 / 3; }
+
+  /* Pull badge fully inside the slide frame so it can't overlap the caption label.
+     Label sits bottom-left; badge moves to top-right — completely opposite corners. */
+  .about__img-badge {
+    bottom: auto;
+    top: 12px;
+    right: 12px;
+    left: auto;
+    padding: 12px 16px;
+  }
+
+  .badge-number {
+    font-size: 1rem;
+  }
+
+  .badge-label {
+    display: none;
+  }
 
   .section-divider { padding: var(--space-sm); }
 }
